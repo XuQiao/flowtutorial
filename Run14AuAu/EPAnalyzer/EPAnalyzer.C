@@ -131,7 +131,7 @@ int EPAnalyzer::process_event(PHCompositeNode *topNode)
     cout<<"EP************* ievent= "<<ievent<<"    *************"<<endl;
   }
   PHMapManager::read(topNode);
-  
+
   PHGlobal* d_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!d_global){
     cout << PHWHERE << "Could not find PHGlobal !" << endl;
@@ -225,6 +225,7 @@ int EPAnalyzer::process_event(PHCompositeNode *topNode)
       }
  }
  }
+  
   return 0;
 }   
 

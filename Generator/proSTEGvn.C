@@ -40,7 +40,7 @@ void proSTEGvn()
   tree->Branch("etag", &b_etag, "etag[n]/F");
   tree->Branch("phig", &b_phig, "phig[n]/F");
   tree->Branch("phirg", &b_phirg, "phirg/F");
-  
+  TF1* VnvsPt[7];
   TF1 *EtaDistr = new TF1("EtaDistr","exp(-(x-[0])^2/[1])+exp(-(x+[0])^2/[1])",-4,4);
   TF1 *PhiDistr = new TF1("PhiDistr","1+2*[0]*cos(x)+2*[1]*cos(2*x)+2*[2]*cos(3*x)+2*[3]*cos(4*x)+2*[4]*cos(5*x)+2*[5]*cos(6*x)",0,2.*TMath::Pi());
   //TF1 *PhiDistr = new TF1("PhiDistr","1+2*[0]*cos(2*x)+2*[1]*cos(3*x)+2*[2]*cos(4*x)+2*[3]*cos(5*x)+2*[4]*cos(6*x)",0,2.*TMath::Pi());
@@ -54,20 +54,17 @@ void proSTEGvn()
   //TF1 *V2vsPt = new TF1("V2vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*(.00005+(1/x)^[4])",0.1,10);
  //	V2vsPt->SetParameters(4.81159,1.80783,3.69272,3.11889,0.931485);	//Real data V~0.05
   //	V2vsPt->SetParameters(5,1.8,3,1.8,0.8); //V~0.06
-  TF1 *V2vsPt = new TF1("V2vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
-  TF1 *V3vsPt = new TF1("V3vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
-  TF1 *V4vsPt = new TF1("V4vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
-  TF1 *V5vsPt = new TF1("V5vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
-  TF1 *V6vsPt = new TF1("V6vsPt","((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
+  for (int nharm = 0; nharm < 7; nharm ++)
+      VnvsPt[nharm] = new TF1(Form("V%dvsPt",nharm),"((x/[0])^[1]/(1+(x/[2])^[3]))*([4]+(1/x)^[5])",0.2,6.0);
   
   EtaDistr -> SetParameters(2.1,6.3);
   PtDistr -> SetParameters(0.03,0.594540,0.00499506,1.89391);
   V1vsEta -> SetParameters(2,20,30);
-  V2vsPt -> SetParameters(3.31699,2.35142,3.49188,3.54429,.00005,1.50600);
-  V3vsPt -> SetParameters(3.2,2.3,3.4,2.1,.00005,1.4);
-  V4vsPt -> SetParameters(4.8,2.1,3.4,2.1,.00005,1.4);
-  V5vsPt -> SetParameters(6.0,3.2,11.4,2.1,.00005,1.4);
-  V6vsPt -> SetParameters(5.6,2.4,4.7,2.1,.00005,1.4);
+  VnvsPt[2] -> SetParameters(3.31699,2.35142,3.49188,3.54429,.00005,1.50600);
+  VnvsPt[3] -> SetParameters(3.2,2.3,3.4,2.1,.00005,1.4);
+  VnvsPt[4] -> SetParameters(4.8,2.1,3.4,2.1,.00005,1.4);
+  VnvsPt[5] -> SetParameters(6.0,3.2,11.4,2.1,.00005,1.4);
+  VnvsPt[6] -> SetParameters(5.6,2.4,4.7,2.1,.00005,1.4);
   
   PhiDistr -> SetNpx(60);
 
@@ -91,11 +88,11 @@ void proSTEGvn()
       myeta = EtaDistr->GetRandom();
 
       v1=V1vsEta->Eval(myeta);
-      v2=V2vsPt->Eval(mypt);
-      v3=V3vsPt->Eval(mypt);
-      v4=V4vsPt->Eval(mypt);
-      v5=V5vsPt->Eval(mypt);
-      v6=V6vsPt->Eval(mypt);
+      v2=VnvsPt[2]->Eval(mypt);
+      v3=VnvsPt[3]->Eval(mypt);
+      v4=VnvsPt[4]->Eval(mypt);
+      v5=VnvsPt[5]->Eval(mypt);
+      v6=VnvsPt[6]->Eval(mypt);
 
       b_etag[n] = myeta;
       b_ptg[n]  = mypt;

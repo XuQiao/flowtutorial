@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <stdio.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -5,8 +7,13 @@ using namespace std;
 
 void Run_EP_Run14AuAu(const char *outFile = "output.root")
 {
-  gSystem->Load("/phenix/plhf/xuq/phenix/flow/Run14AuAu/install/lib/libRPCalibRun.so");
-  gSystem->Load("/phenix/plhf/xuq/phenix/flow/flowtutorial/Run14AuAu/install/lib/libEPAnalyzer.so");
+  char path[128];
+  getcwd(path,128);
+  string s(path);
+  s.replace(s.find("Run14AuAu/work"), sizeof("Run14AuAu/work")-1, "Run14AuAu/install/lib");
+  //gSystem->Load("/phenix/plhf/xuq/phenix/flow/Run14AuAu/install/lib/libRPCalibRun.so");
+  gSystem->Load(Form("%s/libEPAnalyzer.so",s.c_str()));
+  gSystem->Load("libRPCalibRun.so");
   // For event plane angle calibration, private version by Hachiya for Run 14 Au+Au
   //gSystem->Load("librpc_subsysreco");
   //gSystem->Load("librpc_muotrackreco");
