@@ -214,7 +214,7 @@ void TwoPCorr::Plot() {
 	fcos4->SetLineColor(5);fcos4->SetLineStyle(2);fcos4->SetLineWidth(2);
 	latex.SetNDC();
 	latex.DrawLatex(0.12,0.7,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
-	latex.DrawLatex(0.12,0.77,Form("%.1f<p_{T}^{asso}<%.1f",0.5,3.0));
+	latex.DrawLatex(0.12,0.77,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
 	fcos[ipt]->SetLineColor(1);
 	fcos[ipt]->Draw("same");
 	fcos1->Draw("same");
