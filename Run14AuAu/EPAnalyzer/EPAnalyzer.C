@@ -295,6 +295,7 @@ int EPAnalyzer::End(PHCompositeNode* topNode)
   //HistoManager->dumpHistos(OutputFileName);
   if(d_outfile) {
     d_outfile->cd();
+    hCentrality -> Write();
     hQx_S -> Write();
     hQy_S -> Write();
     hQy_N -> Write();
