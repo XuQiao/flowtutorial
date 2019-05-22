@@ -61,7 +61,7 @@ void TwoPCorr::ProcessEvents() {
 				float j_pt = ptg[jpart];
 				float deta = j_eta - i_eta;
 				float dphi = j_phi - i_phi;
-				if (fabs(deta) < 0.01) continue; // remove auto-correlation
+				if (fabs(deta) < 0.001 && fabs(dphi) < 0.001) continue; // remove auto-correlation
 				if(dphi < -0.5 * pi) dphi += 2 * pi;
 				if(dphi > 1.5 * pi) dphi -= 2 * pi;
 				if (j_pt >= ptbin[ipt] && j_pt < ptbin[ipt+1])
@@ -74,6 +74,7 @@ void TwoPCorr::ProcessEvents() {
 					float jmix_pt = ptvec_mix[jevent][jpart];
 					float deta = jmix_eta - i_eta;
 					float dphi = jmix_phi - i_phi;
+				        if (fabs(deta) < 0.001 && fabs(dphi) < 0.001) continue; // remove auto-correlation
 					if(dphi < -0.5 * pi) dphi += 2 * pi;
 					if(dphi > 1.5 * pi) dphi -= 2 * pi;
 				        if (jmix_pt >= ptbin[ipt] && jmix_pt < ptbin[ipt+1])
@@ -110,7 +111,7 @@ void TwoPCorr::End() {
 		hIntCorr[ipt] -> Fit(fcos[ipt],"NQ0");
 		if (fcos[ipt] -> GetParameter(2) > 0){
                     float v2 = sqrt(fcos[ipt] -> GetParameter(2));
-                    float v2_err = 	1./2*fcos[ipt] -> GetParError(2)/v2;
+                    float v2_err =  1./2*fcos[ipt] -> GetParError(2)/v2;
                     hv2 -> SetBinContent(ipt+1, v2);
                     hv2 -> SetBinError(ipt+1, v2_err);
                 }
@@ -180,14 +181,54 @@ void TwoPCorr::Plot() {
 	latex.SetNDC();
 	hCorr[ipt]->SetTitle("1k Two Particle Corr method STEG");
 	hCorr[ipt]->GetXaxis()->SetTitle("#Delta#eta");
+	hCorr[ipt]->GetXaxis()->SetRangeUser(-6,6);
+	hCorr[ipt]->GetXaxis()->CenterTitle();
 	hCorr[ipt]->GetYaxis()->SetTitle("#Delta#phi");
+	hCorr[ipt]->GetYaxis()->CenterTitle();
 	hCorr[ipt]->GetZaxis()->SetTitle("C(#Delta#eta,#Delta#phi)");
 	hCorr[ipt] -> Draw("surf1");
 	latex.SetNDC();
-	latex.DrawLatex(0.12,0.7,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
-	latex.DrawLatex(0.12,0.77,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	latex.DrawLatex(0.12,0.8,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	latex.DrawLatex(0.12,0.87,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
 	c1 -> Print(Form("hCorr_pt%d.png",ipt));
 
+	c1 = new TCanvas("","",850,500);
+        c1->Divide(2,1,0,0);
+        c1->cd(1);
+        c1->cd(1)->SetTheta(60);
+	c1->cd(1)->SetPhi(30);
+	latex.SetNDC();
+        hSignal[ipt]->Scale(1./hSignal[ipt]->GetBinContent(hSignal[ipt]->FindBin(0,0)));
+	hSignal[ipt]->SetTitle("1k Two Particle Corr method STEG");
+	hSignal[ipt]->GetXaxis()->SetTitle("#Delta#eta");
+	hSignal[ipt]->GetXaxis()->SetRangeUser(-6,6);
+	hSignal[ipt]->GetXaxis()->CenterTitle();
+	hSignal[ipt]->GetYaxis()->SetTitle("#Delta#phi");
+	hSignal[ipt]->GetYaxis()->CenterTitle();
+	hSignal[ipt]->GetZaxis()->SetTitle("Normalized Signal(#Delta#eta,#Delta#phi)");
+	hSignal[ipt] -> Draw("surf1");
+	latex.SetNDC();
+	latex.DrawLatex(0.12,0.7,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	latex.DrawLatex(0.12,0.77,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+        c1->cd(2);
+        c1->SetTheta(60);
+	c1->SetPhi(30);
+	latex.SetNDC();
+        hBackgd[ipt]->Scale(1./hBackgd[ipt]->GetBinContent(hBackgd[ipt]->FindBin(0,0)));
+	hBackgd[ipt]->SetTitle("1k Two Particle Corr method STEG");
+	hBackgd[ipt]->GetXaxis()->SetTitle("#Delta#eta");
+	hBackgd[ipt]->GetXaxis()->CenterTitle();
+	hBackgd[ipt]->GetXaxis()->SetRangeUser(-6,6);
+	hBackgd[ipt]->GetYaxis()->SetTitle("#Delta#phi");
+	hBackgd[ipt]->GetYaxis()->CenterTitle();
+	hBackgd[ipt]->GetZaxis()->SetTitle("Normalized Backgd(#Delta#eta,#Delta#phi)");
+	hBackgd[ipt] -> Draw("surf1");
+	latex.SetNDC();
+	latex.DrawLatex(0.12,0.8,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	latex.DrawLatex(0.12,0.87,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	c1 -> Print(Form("hSignalBackgd_pt%d.png",ipt));
+
+        
 	c1 = new TCanvas();
 	hempty = new TH1F("","",10,-0.5*pi,1.5*pi);
 	hempty -> SetMaximum(1.02);
@@ -213,8 +254,8 @@ void TwoPCorr::Plot() {
 	fcos3->SetLineColor(4);fcos3->SetLineStyle(2);fcos3->SetLineWidth(2);
 	fcos4->SetLineColor(5);fcos4->SetLineStyle(2);fcos4->SetLineWidth(2);
 	latex.SetNDC();
-	latex.DrawLatex(0.12,0.7,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
-	latex.DrawLatex(0.12,0.77,Form("%.1f<p_{T}^{asso}<%.1f",0.5,3.0));
+	latex.DrawLatex(0.12,0.8,Form("%.1f<p_{T}^{trig}<%.1f",ptbin[ipt],ptbin[ipt+1]));
+	latex.DrawLatex(0.12,0.87,Form("%.1f<p_{T}^{asso}<%.1f",ptbin[ipt],ptbin[ipt+1]));
 	fcos[ipt]->SetLineColor(1);
 	fcos[ipt]->Draw("same");
 	fcos1->Draw("same");

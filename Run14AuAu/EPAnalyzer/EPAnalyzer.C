@@ -65,8 +65,19 @@ EPAnalyzer::EPAnalyzer(const char* output) :
   SubsysReco("EPAnalyzer"), OutputFileName(output), ievent(0), RunNumber(0)
 {
   d_outfile=NULL;
-  hpsi = NULL;
-  
+  hCentrality = NULL;
+  hQx_S = NULL;
+  hQy_S = NULL;
+  hQx_N = NULL;
+  hQy_N = NULL;
+  hBBCqS = NULL;
+  hBBCqN = NULL;
+  hBBCq = NULL;
+  hpsi_FVTXS = NULL;
+  hpsi_FVTXN = NULL;
+  hpsi_FVTXSFVTXN = NULL;
+  hReso = NULL;
+  hpTvnRaw = NULL;
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -85,9 +96,28 @@ int EPAnalyzer::Init(PHCompositeNode *topNode)
   float pi = acos(-1.0);
 
   d_outfile = new TFile(OutputFileName.c_str(),"recreate");
-
-  sprintf(name,"hpsi");
-  hpsi = new TH1F(name,name,100,-pi,pi);
+  sprintf(name,"hCentrality");
+  hCentrality = new TH1F(name,name,100,0,100);
+  sprintf(name,"hQx_N");
+  hQx_N = new TH1F(name,name,100,-1,1);
+  sprintf(name,"hQy_N");
+  hQy_N = new TH1F(name,name,100,-1,1);
+  sprintf(name,"hQx_S");
+  hQx_S = new TH1F(name,name,100,-1,1);
+  sprintf(name,"hQy_S");
+  hQy_S = new TH1F(name,name,100,-1,1);
+  sprintf(name,"hBBCqS");
+  hBBCqS = new TH1F(name,name,100,0,300);
+  sprintf(name,"hBBCqN");
+  hBBCqN = new TH1F(name,name,100,0,300);
+  sprintf(name,"hBBCq");
+  hBBCq = new TH1F(name,name,100,0,600);
+  sprintf(name,"hpsi_FVTXS");
+  hpsi_FVTXS = new TH1F(name,name,100,-pi,pi);
+  sprintf(name,"hpsi_FVTXN");
+  hpsi_FVTXN = new TH1F(name,name,100,-pi,pi);
+  sprintf(name,"hpsi_FVTXSFVTXN");
+  hpsi_FVTXSFVTXN = new TH2F(name,name,20,-pi,pi,20,-pi,pi);
   sprintf(name,"hResoVsCent");
   double centbin[] = {0,10,20,30,40,50,60,100};
   hReso = new TProfile(name,name,7,centbin,-1.1,1.1);
@@ -186,9 +216,32 @@ int EPAnalyzer::process_event(PHCompositeNode *topNode)
   if(!(trig & 0x00000010)>0) return -1; //MinBias trigger
   float bbcv = d_global->getBbcZVertex();
   int cent = (int)d_global->getCentrality();
+  float bbcqN  = d_global->getBbcChargeN();   
+  float bbcqS  = d_global->getBbcChargeS();   
   if(fabs(bbcv)>10) return -1;
-
+  
+  hCentrality -> Fill(cent);
+  hBBCqS -> Fill(bbcqS);
+  hBBCqN -> Fill(bbcqN);
+  hBBCq -> Fill(bbcqN + bbcqS);
   int nharm = 2;
+  
+  // Get raw Q-vectors without any recalibration
+    RpSnglSumXY *s_rp;
+    s_rp = d_rp->getRpSumXY(RP::calcIdCode(91,40,1));
+    float Qx_S = (s_rp && s_rp->Weight() > 0 && s_rp->Weight() < 999) ? s_rp->QVector(0) / s_rp->Weight() : -9999;
+    s_rp = d_rp->getRpSumXY(RP::calcIdCode(91,40,1));
+    float Qy_S = (s_rp && s_rp->Weight() > 0 && s_rp->Weight() < 999) ? s_rp->QVector(1) / s_rp->Weight() : -9999;
+    
+    s_rp = d_rp->getRpSumXY(RP::calcIdCode(91,41,1));
+    float Qx_N = (s_rp && s_rp->Weight() > 0 && s_rp->Weight() < 999) ? s_rp->QVector(0) / s_rp->Weight(): -9999;
+    s_rp = d_rp->getRpSumXY(RP::calcIdCode(91,41,1));
+    float Qy_N = (s_rp && s_rp->Weight() > 0 && s_rp->Weight() < 999) ? s_rp->QVector(1) / s_rp->Weight(): -9999;
+    
+    hQx_S -> Fill(Qx_S);
+    hQy_S -> Fill(Qy_S);
+    hQx_N -> Fill(Qx_N);
+    hQy_N -> Fill(Qy_N);
  
     //FVTX, Particle for Event Plane angle determination
     ReactionPlaneSngl* rpsngl;
@@ -198,6 +251,9 @@ int EPAnalyzer::process_event(PHCompositeNode *topNode)
     float Psi_N = (rpsngl) ? rpsngl->GetPsi() : -9999;
 
     if(fabs(Psi_S) < 4 && fabs(Psi_N) < 4) {
+        hpsi_FVTXS -> Fill(Psi_S);
+        hpsi_FVTXN -> Fill(Psi_N);
+        hpsi_FVTXSFVTXN -> Fill(Psi_S, Psi_N);
         hReso -> Fill(cent, cos(nharm*(Psi_S - Psi_N)));//South - North
     }
 
@@ -239,7 +295,16 @@ int EPAnalyzer::End(PHCompositeNode* topNode)
   //HistoManager->dumpHistos(OutputFileName);
   if(d_outfile) {
     d_outfile->cd();
-    hpsi ->Write();
+    hQx_S -> Write();
+    hQy_S -> Write();
+    hQy_N -> Write();
+    hQx_N -> Write();
+    hpsi_FVTXS ->Write();
+    hpsi_FVTXN ->Write();
+    hpsi_FVTXSFVTXN ->Write();
+    hBBCqN -> Write();
+    hBBCqS -> Write();
+    hBBCq -> Write();
     hReso ->Write();
     hpTvnRaw ->Write();
     d_outfile->Close();

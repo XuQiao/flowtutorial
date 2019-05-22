@@ -29,8 +29,19 @@ class EPAnalyzer: public SubsysReco
   int RunNumber;
 
   TFile *d_outfile;
-  
-  TH1F* hpsi;
+ 
+  TH1F* hCentrality;
+  TH1F* hBBCqS;
+  TH1F* hBBCqN;
+  TH1F* hBBCq;
+
+  TH1F* hQx_N;
+  TH1F* hQy_N;
+  TH1F* hQx_S;
+  TH1F* hQy_S;
+  TH1F* hpsi_FVTXS;
+  TH1F* hpsi_FVTXN;
+  TH2F* hpsi_FVTXSFVTXN;
   TProfile* hReso;
   TProfile* hpTvnRaw;
 };
